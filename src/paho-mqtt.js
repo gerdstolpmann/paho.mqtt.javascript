@@ -1345,6 +1345,10 @@ function onMessageArrived(message) {
 					// Execute the onConnected callback if there is one.
 					this._connected(reconnected, this._wsuri);
 
+                                        // start the pingers
+                                        this.receivePinger.reset();
+                                        this.sendPinger.reset();
+
 					// Process all queued messages now that the connection is established.
 					this._process_queue();
 					break;
