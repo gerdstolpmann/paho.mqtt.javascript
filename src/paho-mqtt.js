@@ -1219,8 +1219,8 @@ function onMessageArrived(message) {
 	 * @ignore
 	 */
 		ClientImpl.prototype._on_socket_message = function (event) {
-                        this._trace("Client._on_socket_message", event.data);
-                        this.receivePinger.reset();
+			this._trace("Client._on_socket_message", event.data);
+			this.receivePinger.reset();
 			var messages = this._deframeMessages(event.data);
 			for (var i = 0; i < messages.length; i+=1) {
 				this._handleMessage(messages[i]);
@@ -1345,9 +1345,9 @@ function onMessageArrived(message) {
 					// Execute the onConnected callback if there is one.
 					this._connected(reconnected, this._wsuri);
 
-                                        // start the pingers
-                                        this.receivePinger.reset();
-                                        this.sendPinger.reset();
+					// start the pingers
+					this.receivePinger.reset();
+					this.sendPinger.reset();
 
 					// Process all queued messages now that the connection is established.
 					this._process_queue();
