@@ -700,7 +700,7 @@ function onMessageArrived(message) {
 	 * Repeat keepalive requests, monitor responses.
 	 * @ignore
 	 */
-		var Pinger = function(client, keepAliveInterval) {
+	    var Pinger = function(client, keepAliveInterval, noDisconnect) {
 			this._client = client;
 			this._keepAliveInterval = keepAliveInterval*1000;
 			this.isReset = false;
@@ -719,7 +719,7 @@ function onMessageArrived(message) {
 					this._client._trace("Pinger.doPing", "Timed out");
 					this._client._disconnected( ERROR.PING_TIMEOUT.code , format(ERROR.PING_TIMEOUT));
 				} else {
-					this.isReset = false;
+					this.isReset = noDisconnect;
 					this._client._trace("Pinger.doPing", "send PINGREQ");
 					this._client.socket.send(pingReq);
 					this.timeout = setTimeout(doTimeout(this), this._keepAliveInterval);
@@ -1059,8 +1059,8 @@ function onMessageArrived(message) {
 			this.socket.onerror = scope(this._on_socket_error, this);
 			this.socket.onclose = scope(this._on_socket_close, this);
 
-			this.sendPinger = new Pinger(this, this.connectOptions.keepAliveInterval);
-			this.receivePinger = new Pinger(this, this.connectOptions.keepAliveInterval);
+		    this.sendPinger = new Pinger(this, this.connectOptions.keepAliveInterval, true);
+		    this.receivePinger = new Pinger(this, this.connectOptions.keepAliveInterval, false);
 			if (this._connectTimeout) {
 				this._connectTimeout.cancel();
 				this._connectTimeout = null;
@@ -1220,6 +1220,7 @@ function onMessageArrived(message) {
 	 */
 		ClientImpl.prototype._on_socket_message = function (event) {
 			this._trace("Client._on_socket_message", event.data);
+			this.receivePinger.reset();
 			var messages = this._deframeMessages(event.data);
 			for (var i = 0; i < messages.length; i+=1) {
 				this._handleMessage(messages[i]);
@@ -1343,6 +1344,10 @@ function onMessageArrived(message) {
 
 					// Execute the onConnected callback if there is one.
 					this._connected(reconnected, this._wsuri);
+
+					// start the pingers
+					this.receivePinger.reset();
+					this.sendPinger.reset();
 
 					// Process all queued messages now that the connection is established.
 					this._process_queue();
